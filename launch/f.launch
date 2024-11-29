@@ -1,0 +1,12 @@
+<launch>
+	<!-- Launch file for Velodyne16 VLP-16 LiDAR -->
+	<!--pandarxt-16 fusion with L1 -->
+	<node pkg="point_lio_unilidar" type="l1_r1_repub_node" name="l1_r1_repub_node" output="screen"/>
+    <node pkg="point_lio_unilidar" type="lidarsFusion" name="lidarsFusions" output="screen"/>
+	<!-- <node pkg="point_lio_unilidar" type="go2_control" name="vel_move_node" output="screen"/> -->
+	
+	<include file="$(find point_lio_unilidar)/launch/mapping_pandar_l1.launch" />
+
+	<!-- <include file="$(find vehicle_simulator)/launch/system_real_robot.launch" /> -->
+
+</launch>

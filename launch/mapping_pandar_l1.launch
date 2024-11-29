@@ -17,12 +17,14 @@
 		<param name="space_down_sample" type="bool" value="1" />
 		<param name="filter_size_surf" type="double" value="0.1" /> <!--0.5, 0.3, 0.2, 0.15, 0.1-->
 		<param name="filter_size_map" type="double" value="0.1" /> <!--0.5, 0.3, 0.15, 0.1-->
-		<param name="cube_side_length" type="double" value="2000" /> <!--2000-->
+		<param name="cube_side_length" type="double" value="1000" /> <!--2000-->
 		<param name="runtime_pos_log_enable" type="bool" value="0" /> <!--1-->
 	</node>
 	<!--pandarxt-16 fusion with L1 -->
-	<node pkg="point_lio_unilidar" type="l1_r1_repub_node" name="l1_r1_repub_node" output="screen"/>
-    <node pkg="point_lio_unilidar" type="lidarsFusion" name="lidarsFusions" output="screen"/>
+	<!-- <node pkg="point_lio_unilidar" type="l1_r1_repub_node" name="l1_r1_repub_node" output="screen"/>
+    <node pkg="point_lio_unilidar" type="lidarsFusion" name="lidarsFusions" output="screen"/> -->
+
+	<node pkg="tf" type="static_transform_publisher" name="pointlioTransPublisher" args="0 0 0 0 0 0 /map /camera_init 1000"/>
 
 	<group if="$(arg rviz)">
 		<node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find point_lio_unilidar)/rviz_cfg/loam_livox.rviz" />

@@ -55,15 +55,8 @@ Eigen::Matrix3f R;
 Eigen::Vector3f t;
 bool isGetT;
 
-// class lidarsFusion{
-//     public:
-        
+bool flipcloud = true;
 
-//     public:
-//         lidarsFusion(){
-            
-//         };
-//         ~lidarsFusion();
 void getL1ToR1_T(Eigen::Affine3f &L1_R1_t, Eigen::Matrix3f &R, Eigen::Vector3f &t)
 {
     R << 0.0233267, 0.999713, -0.00605192,0.979933,-0.024062,-0.197882,-0.19797,-0.00131473,-0.980207;
@@ -71,6 +64,15 @@ void getL1ToR1_T(Eigen::Affine3f &L1_R1_t, Eigen::Matrix3f &R, Eigen::Vector3f &
     // Affine3f [L,t,0,1]
     L1_R1_t.linear() =  R;
     L1_R1_t.translation() = t;
+
+    Eigen::Matrix4f initial_guess = Eigen::Matrix4f::Identity();
+    Eigen::Matrix3f rotation_matrix_z;
+    rotation_matrix_z = Eigen::AngleAxisf(M_PI/2, Eigen::Vector3f::UnitZ());
+    initial_guess.block<3, 3>(0, 0) = rotation_matrix_z;
+
+    Eigen::Affine3f tempT;
+    tempT.matrix() = initial_guess;
+    L1_R1_t = tempT * L1_R1_t;
     
 }
 
@@ -86,12 +88,14 @@ void LaserCloudProcess(const sensor_msgs::PointCloud2ConstPtr& l1msg,
     int plsize_l1 = l1_pcl_cloud->points.size();
     int plsize_r1 = r1_pcl_cloud->points.size();
 
-    auto cloud_temp =  *l1_pcl_cloud;
-    // ROS_INFO("L1 pts size: %d\n",plsize_l1);
+    // auto cloud_temp =  *l1_pcl_cloud;
+    // // ROS_INFO("L1 pts size: %d\n",plsize_l1);
     // cloud_temp.clear();
-    pcl::transformPointCloud(*l1_pcl_cloud,cloud_temp,L1_R1_T);
+    pcl::transformPointCloud(*l1_pcl_cloud,*l1_pcl_cloud,L1_R1_T);
+    *r1_pcl_cloud += *l1_pcl_cloud;
+    
 
-    *r1_pcl_cloud += cloud_temp;
+   
      
     sensor_msgs::PointCloud2 cloud_ros;
     pcl::toROSMsg(*r1_pcl_cloud,cloud_ros);
@@ -99,6 +103,8 @@ void LaserCloudProcess(const sensor_msgs::PointCloud2ConstPtr& l1msg,
     cloud_ros.header.frame_id  =  "Hesai_link";
     fusion_pub.publish(cloud_ros);
     // std::cout << "Finish pub new cloud \n";
+    l1_pcl_cloud->clear();
+    r1_pcl_cloud->clear();
 
 }
 
@@ -111,18 +117,6 @@ void imumsgprocess(const sensor_msgs::ImuConstPtr& imumsg)
 
 }
 
-
-
-// bool  fromROSMsg(const sensor_msgs::PointCloud2ConstPtr& msg)
-// {
-//     return false;
-// }
-
-    // private:
-
-    
-
-// };
 
 
 

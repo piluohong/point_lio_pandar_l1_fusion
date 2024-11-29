@@ -93,3 +93,8 @@ target_include_directories(l1_r1_repub_node PRIVATE ${PYTHON_INCLUDE_DIRS})
 add_executable(lidarsFusion src/l1_rslidar_fusion_node.cpp)
 target_link_libraries(lidarsFusion ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${PYTHON_LIBRARIES} ${Sophus_LIBRARIES})
 target_include_directories(lidarsFusion PRIVATE ${PYTHON_INCLUDE_DIRS})
+
+add_executable(go2_control src/l1_rslidar_fusion_node.cpp)
+target_link_libraries(go2_control ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${PYTHON_LIBRARIES} ${Sophus_LIBRARIES})
+target_include_directories(go2_control PRIVATE ${PYTHON_INCLUDE_DIRS})
+

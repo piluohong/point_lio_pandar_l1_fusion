@@ -59,6 +59,21 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(VELOPoint,
                                  (float, time, time)
                                  (uint16_t, ring, ring))
 
+struct unilidarPoint
+{
+  PCL_ADD_POINT4D
+  PCL_ADD_INTENSITY
+  std::uint16_t ring;
+  float time;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+} EIGEN_ALIGN16;
+POINT_CLOUD_REGISTER_POINT_STRUCT(unilidarPoint,
+  (float, x, x)(float, y, y)(float, z, z)
+  (float, intensity, intensity)
+  (std::uint16_t, ring, ring)
+  (float, time, time)
+)
+
 // typedef PointXYZIT PointType;
 typedef pcl::PointXYZ PointType;
 pcl::PointCloud<PointType>::Ptr  l1_pcl_cloud(new  pcl::PointCloud<PointType>());
@@ -75,7 +90,6 @@ Eigen::Matrix3f R;
 Eigen::Vector3f t;
 
 
-
 void l1msgprocess(const sensor_msgs::PointCloud2ConstPtr& l1msg)
 {
     pcl::fromROSMsg(*l1msg,*l1_pcl_cloud);
@@ -88,9 +102,9 @@ void l1msgprocess(const sensor_msgs::PointCloud2ConstPtr& l1msg)
         pt.x = l1_pcl_cloud->points[i].x;
         pt.y = l1_pcl_cloud->points[i].y;
         pt.z = l1_pcl_cloud->points[i].z;
-        pt.intensity = 255;
-        pt.ring = 1;
-        pt.time = ((1/15)/ptsize) * i;
+        pt.intensity = 255.0;
+        pt.ring = 0;
+        pt.time = 1/15/ptsize * i;
         l1_pcl_cloud_->points.push_back(pt);
     }
     pcl::toROSMsg(*l1_pcl_cloud_,cloud_ros);
@@ -101,8 +115,6 @@ void l1msgprocess(const sensor_msgs::PointCloud2ConstPtr& l1msg)
     l1_pcl_cloud_->clear();
     l1_pcl_cloud->clear();
     // *cloud_saved  += *l1_pcl_cloud;
-
-
 }
 void r1msgprocess(const sensor_msgs::PointCloud2ConstPtr& r1msg)
 {
@@ -110,17 +122,22 @@ void r1msgprocess(const sensor_msgs::PointCloud2ConstPtr& r1msg)
     sensor_msgs::PointCloud2 cloud_ros;
     double timeheader = r1msg->header.stamp.toSec();
     int ptsize = r1_pcl_cloud->size();
+    Eigen::Matrix4f T = Eigen::Matrix4f::Identity();
+    Eigen::Matrix3f rotation_matrix_z;
+    rotation_matrix_z = Eigen::AngleAxisf(M_PI/2, Eigen::Vector3f::UnitZ());
+    T.block<3, 3>(0, 0) = rotation_matrix_z;
     for(size_t i = 0; i < ptsize;i++)
     {
         VELOPoint pt;
-        pt.x = r1_pcl_cloud->points[i].x;
-        pt.y = r1_pcl_cloud->points[i].y;
-        pt.z = r1_pcl_cloud->points[i].z;
+        pt.x = T(0,0) * r1_pcl_cloud->points[i].x + T(0,1) * r1_pcl_cloud->points[i].y + T(0,2) * r1_pcl_cloud->points[i].z + T(0,3);
+        pt.y = T(1,0) * r1_pcl_cloud->points[i].x + T(1,1) * r1_pcl_cloud->points[i].y + T(1,2) * r1_pcl_cloud->points[i].z + T(1,3);
+        pt.z = T(2,0) * r1_pcl_cloud->points[i].x + T(2,1) * r1_pcl_cloud->points[i].y + T(2,2) * r1_pcl_cloud->points[i].z + T(2,3);
         pt.intensity = r1_pcl_cloud->points[i].intensity;
         pt.ring = r1_pcl_cloud->points[i].ring;
         pt.time = (r1_pcl_cloud->points[i].timestamp - timeheader); //s
         r1_pcl_cloud_->points.push_back(pt);
     }
+
     pcl::toROSMsg(*r1_pcl_cloud_,cloud_ros);
     cloud_ros.header.stamp = ros::Time::now();
     cloud_ros.header.frame_id  =  "pandarXT-16";
