@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-### 使用hesai PandarXT-16 和 L1 lidar融合作为数据输入，L1来自go2头部，hesai PandarXT-16位于头部，融合数据格式为Veldyne PintXYZIRT.
+* 使用hesai PandarXT-16 和 L1 lidar融合作为数据输入，L1来自go2头部，hesai PandarXT-16位于头顶部，融合数据格式为Veldyne PintXYZIRT.
 
 ### 1.1 Unitree LiDAR
 
